@@ -191,8 +191,6 @@ computeDFA(DFA &dfa, const vector<Augmented_Grammar> AG, queue<char> expand,
            const set<char> non_terminals,
            set<pair<int, set<Augmented_Grammar>>> &LR_items, int id,
            vector<Augmented_Grammar> rec) {
-  // cout << "For id:" << id << endl;
-  // cout << "Intial Size of expand: " << expand.size() << endl;
   set<char> moves;
   set<Augmented_Grammar> temp;
   map<char, set<Augmented_Grammar>> mapping;
@@ -212,26 +210,19 @@ computeDFA(DFA &dfa, const vector<Augmented_Grammar> AG, queue<char> expand,
 
     size_t dot_index = n_rhs.find('.');
     if (dot_index != string::npos) {
-      // Erase '.' from its current position
       n_rhs.erase(dot_index, 1);
-
-      // Insert '.' one position to the right
       if (dot_index + 1 <= n_rhs.length()) {
         n_rhs.insert(dot_index + 1, 1, '.');
-        // Update expand and mapping for the character after the new dot
-        // position
         expand.push(n_rhs[dot_index + 2]);
         Augmented_Grammar t;
         t.lhs = n_lhs;
         t.rhs = n_rhs;
         mapping[n_rhs[dot_index + 2]].insert(t);
       } else {
-        // If dot was at the end, now it's still at the end after shifting
         type = 'R';
       }
     }
 
-    // Insert the updated production into temp
     Augmented_Grammar t;
     t.lhs = n_lhs;
     t.rhs = n_rhs;

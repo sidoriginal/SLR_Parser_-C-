@@ -191,8 +191,6 @@ computeDFA(DFA &dfa, const vector<Augmented_Grammar> AG, queue<char> expand,
            const set<char> non_terminals,
            set<pair<int, set<Augmented_Grammar>>> &LR_items, int id,
            vector<Augmented_Grammar> rec) {
-  // cout << "For id:" << id << endl;
-  // cout << "Intial Size of expand: " << expand.size() << endl;
   set<char> moves;
   set<Augmented_Grammar> temp;
   map<char, set<Augmented_Grammar>> mapping;
@@ -212,26 +210,19 @@ computeDFA(DFA &dfa, const vector<Augmented_Grammar> AG, queue<char> expand,
 
     size_t dot_index = n_rhs.find('.');
     if (dot_index != string::npos) {
-      // Erase '.' from its current position
       n_rhs.erase(dot_index, 1);
-
-      // Insert '.' one position to the right
       if (dot_index + 1 <= n_rhs.length()) {
         n_rhs.insert(dot_index + 1, 1, '.');
-        // Update expand and mapping for the character after the new dot
-        // position
         expand.push(n_rhs[dot_index + 2]);
         Augmented_Grammar t;
         t.lhs = n_lhs;
         t.rhs = n_rhs;
         mapping[n_rhs[dot_index + 2]].insert(t);
       } else {
-        // If dot was at the end, now it's still at the end after shifting
         type = 'R';
       }
     }
 
-    // Insert the updated production into temp
     Augmented_Grammar t;
     t.lhs = n_lhs;
     t.rhs = n_rhs;
@@ -246,9 +237,6 @@ computeDFA(DFA &dfa, const vector<Augmented_Grammar> AG, queue<char> expand,
     if (terminals.find(c) == terminals.end() &&
         non_terminals.find(c) == non_terminals.end() && c != '^')
       continue;
-    // cout << c << " is popped" << endl;
-
-    // cout << "2 Size of expand: " << expand.size() << endl;
     moves.insert(c);
     if (non_terminals.find(c) != non_terminals.end() &&
         vis.find(c) == vis.end()) {
@@ -261,8 +249,6 @@ computeDFA(DFA &dfa, const vector<Augmented_Grammar> AG, queue<char> expand,
           A.rhs = new_rhs;
           mapping[new_rhs[1]].insert(A);
           expand.push(new_rhs[1]);
-          // cout << new_rhs[1] << endl;
-          // cout << "3 Size of expand: " << expand.size() << endl;
           Augmented_Grammar t;
           t.lhs = c;
           t.rhs = new_rhs;
@@ -280,9 +266,7 @@ computeDFA(DFA &dfa, const vector<Augmented_Grammar> AG, queue<char> expand,
     }
   }
   if (found == false) {
-    // cout << "temp is: " << endl;
     for (auto k : temp) {
-      // cout << k.lhs << "->" << k.rhs << endl;
     }
     LR_items.insert({id, temp});
     int new_id = id + 1;
@@ -291,16 +275,13 @@ computeDFA(DFA &dfa, const vector<Augmented_Grammar> AG, queue<char> expand,
     for (auto i : temp) {
       if (i.rhs[i.rhs.length() - 1] == '.') {
         dfa.set_final_state(temp);
-        // cout<<"Its reducing"<<endl;
       }
     }
 
     for (auto i : moves) {
-      // cout << "for move :  " << i << endl;
       vector<Augmented_Grammar> vec;
       for (auto j : mapping[i]) {
         vec.push_back(j);
-        // cout << j.lhs << "->" << j.rhs << endl;
       }
       dfa.set_transitions(temp,
                           computeDFA(dfa, AG, {}, {}, terminals, non_terminals,
@@ -330,17 +311,15 @@ void createActionGotoTables(
   for (const auto &item : LR_items_named) {
     int state = item.first;
     const auto &lrItemSet = item.second;
-
-    // Handling Shift and Goto
     for (const auto &trans : dfa.transitions) {
       if (trans.from == lrItemSet) {
         char symbol = trans.symbol;
         for (const auto &toItem : LR_items_named) {
           if (toItem.second == trans.to) {
             int toState = toItem.first;
-            if (isupper(symbol)) { // Non-terminal
+            if (isupper(symbol)) { 
               gotoTable[{state, symbol}] = toState;
-            } else { // Terminal
+            } else { 
               actionTable[{state, symbol}] = "S" + to_string(toState);
             }
             break;
@@ -348,8 +327,6 @@ void createActionGotoTables(
         }
       }
     }
-
-    // Handling Reduce
     for (const auto &lrItem : lrItemSet) {
       size_t dotPos = lrItem.rhs.find('.');
       if (dotPos != string::npos && dotPos == lrItem.rhs.size() - 1) {
@@ -385,7 +362,7 @@ void parseString(const std::string &input, int initialState) {
   stack<int> states;
   states.push(initialState);
 
-  string buffer = input + "$"; // Adding end symbol
+  string buffer = input + "$"; 
   size_t index = 0;
   cout << "Initial State is: I" << initialState << endl;
   while (true) {
@@ -402,21 +379,21 @@ void parseString(const std::string &input, int initialState) {
 
     string action = actionTable.at({currentState, currentSymbol});
 
-    if (action[0] == 'S') { // Shift
+    if (action[0] == 'S') { 
       int nextState = std::stoi(action.substr(1));
       states.push(nextState);
       index++;
       cout << "Shift " << currentSymbol << ", move to state " << nextState
            << ".\n";
-    } else if (action[0] == 'R') { // Reduce
+    } else if (action[0] == 'R') { 
       string production =
-          action.substr(2, action.size() - 3); // Extract production rule
+          action.substr(2, action.size() - 3); 
       char lhs = production[0];
       int rhsLength = production.size() -
-                      3; // Length of the right-hand side of the production
+                      3; 
 
       for (int i = 0; i < rhsLength; i++) {
-        states.pop(); // Pop states for each symbol in the right-hand side
+        states.pop(); 
       }
 
       if (gotoTable.find({states.top(), lhs}) == gotoTable.end()) {
@@ -441,12 +418,11 @@ void parseString(const std::string &input, int initialState) {
 }
 
 int main() {
-  // Knowing number of production rules
+
   int n;
   cout << "Enter number of grammar rules: ";
   cin >> n;
   cout << endl;
-  // Taking Production rules and augmenting the grammar
   vector<Augmented_Grammar> AG(n + 1);
   AG[0].lhs = 'W';
   AG[0].rhs = 'S';
@@ -473,14 +449,12 @@ int main() {
     }
     cout << endl;
   }
-  // Printing the augmented grammar
   cout << "-------------------------------------------------------------------"
        << endl;
   cout << "Augmented Grammar: \n";
   for (int i = 0; i <= n; i++) {
     cout << AG[i].lhs << " -> " << AG[i].rhs << endl;
   }
-  // Printing terminals and non-terminals
   cout << "-------------------------------------------------------------------"
        << endl;
   cout << "Terminals: ";
@@ -493,8 +467,6 @@ int main() {
     cout << i << ",";
   }
   cout << endl;
-
-  // Finding FIRST set
   cout << "-------------------------------------------------------------------"
        << endl;
   map<char, unordered_set<char>> FIRST_set;
@@ -502,7 +474,6 @@ int main() {
     computeFirstSet(non_terminal, AG, FIRST_set, non_terminals, terminals);
   }
 
-  // Printing FIRST sets
   cout << "FIRST Sets: " << endl;
   for (const auto &fs : FIRST_set) {
     cout << "FIRST(" << fs.first << ") = { ";
@@ -512,7 +483,6 @@ int main() {
     cout << "}" << endl;
   }
 
-  // Finding FOLLOW set
   cout << "-------------------------------------------------------------------"
        << endl;
   map<char, unordered_set<char>> FOLLOW_set;
@@ -530,7 +500,6 @@ int main() {
     }
   } while (added);
 
-  // Printing FOLLOW sets
   cout << "FOLLOW Sets: " << endl;
   for (const auto &fs : FOLLOW_set) {
     cout << "FOLLOW(" << fs.first << ") = { ";
@@ -539,7 +508,7 @@ int main() {
     }
     cout << "}" << endl;
   }
-  // Getting LR(0) items and making DFA of them
+
   cout << "-------------------------------------------------------------------"
        << endl;
   DFA dfa;
@@ -553,7 +522,6 @@ int main() {
   vec.push_back(x);
   set<Augmented_Grammar> dummy = computeDFA(dfa, AG, expand, vis, terminals,
                                             non_terminals, LR_items, 0, {});
-  // Printing LR(0) items
   set<pair<int, set<Augmented_Grammar>>> LR_items_named;
   dfa.getnamed(LR_items_named);
   cout << "LR(0) Items: " << endl;
@@ -566,18 +534,13 @@ int main() {
     cout << ')' << endl;
   }
 
-  // Printing DFA
   cout << "-------------------------------------------------------------------"
        << endl;
   cout << "DFA: " << endl;
 
   dfa.display(LR_items_named);
-
-  // Creating and displaying tables
   createActionGotoTables(dfa, LR_items_named, FOLLOW_set);
   displayTables();
-
-  // Parsing the strings given by user
   set<Augmented_Grammar> startState = dfa.get_start_state();
   int initialState = -1;
   for (const auto &item : LR_items_named) {
