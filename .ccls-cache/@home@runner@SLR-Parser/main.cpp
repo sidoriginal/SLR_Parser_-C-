@@ -31,6 +31,7 @@ struct trans {
     return to < other.to;
   }
 };
+
 class DFA {
 public:
   set<trans> transitions;
@@ -54,7 +55,6 @@ public:
 
   set<Augmented_Grammar> get_start_state() { return start_state; }
   void display(set<pair<int, set<Augmented_Grammar>>> LR_items_named) {
-    int i;
     for (auto i : transitions) {
       cout << "================================================================"
               "================"
@@ -587,7 +587,8 @@ int main() {
     }
   }
   cout << "------------------------------------------------------------------"
-          "-" string input;
+          "-"<<endl;
+  string input;
   while (true) {
     cout << "Enter a string to parse (or type 'stop' to exit): ";
     cin >> input;
